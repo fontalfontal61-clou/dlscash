@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLSCash - Platfòm Itilizatè</title>
+    
+    <!-- Liy pou Ikon ak PWA Manifest la -->
+    <link rel="icon" type="image/png" href="logo192.png">
+    <link rel="manifest" href="manifest.json">
+
+    <!-- EmailJS SDK Script -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
+    <!-- Firebase SDK Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, collection } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-Ynh3seDppzEYGzt_Yzj6IzcgtAsRACA",
+            authDomain: "dls-cash-app.firebaseapp.com",
+            projectId: "dls-cash-app",
+            storageBucket: "dls-cash-app.firebasestorage.app",
+            messagingSenderId: "189289401671",
+            appId: "1:189289401671:web:80421cd364b84fc08f1062"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        window.firebaseAuth = auth;
+        window.firebaseDb = db;
+        window.fbSignIn = signInWithEmailAndPassword;
+        window.fbSignUp = createUserWithEmailAndPassword;
+        window.fbResetPass = sendPasswordResetEmail;
+        window.fbSignOut = signOut;
+        window.fbOnAuth = onAuthStateChanged;
+        window.fbDoc = doc;
+        window.fbGetDoc = getDoc;
+        window.fbSetDoc = setDoc;
+        window.fbUpdateDoc = updateDoc;
+        window.fbCollection = collection;
+    </script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b132b; color: #ffffff; padding: 15px; }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 2px solid #1c2541; margin-bottom: 15px; }
+        .logo { font-size: 22px; font-weight: 900; color: #00b4d8; }
+        .logo span { color: #ff0055; }
+        
+        .nav-tabs { display: flex; background: #1c2541; border-radius: 8px; margin-bottom: 15px; overflow-x: auto; border: 1px solid #3a506b; }
+        .nav-tab { flex: 1; padding: 10px 5px; text-align: center; font-size: 11px; font-weight: bold; background: none; border: none; color: #cbd5e1; cursor: pointer; white-space: nowrap; }
+        .nav-tab.active { background: #00b4d8; color: #000; }
+
+        .auth-container { max-width: 400px; margin: 40px auto; background: #1c2541; padding: 25px; border-radius: 12px; border: 1px solid #3a506b; }
+        .auth-title { text-align: center; color: #00b4d8; font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #cbd5e1; }
+        .form-group input, .form-group select { width: 100%; padding: 12px; background: #0b132b; border: 1px solid #3a506b; border-radius: 8px; color: white; font-size: 14px; }
+        
+        .password-wrapper { position: relative; }
+        .password-wrapper input { padding-right: 40px; }
+        .toggle-password { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; color: #8a99ad; }
+
+        .btn-main { width: 100%; background: linear-gradient(90deg, #ff0055, #ff5400); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 10px rgba(255, 0, 85, 0.4); }
+        .btn-main:disabled { background: #3a506b; cursor: not-allowed; box-shadow: none; opacity: 0.7; }
+        
+        .btn-vip-buy { width: 100%; background: linear-gradient(90deg, #00b4d8, #00ff88); color: #0b132b; border: none; padding: 10px; border-radius: 6px; font-size: 13px; font-weight: bold; cursor: pointer; margin-top: 10px; }
+        .btn-vip-buy:disabled { background: #3a506b; color: #8a99ad; cursor: not-allowed; }
+
+        .btn-deposit-open { width: 100%; background: linear-gradient(90deg, #ffb703, #fb8500); color: #0b132b; border: none; padding: 12px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(255, 183, 3, 0.3); }
+
+        .auth-switch { text-align: center; margin-top: 12px; font-size: 13px; color: #4ea8de; cursor: pointer; }
+
+        .balance-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .card { padding: 12px; border-radius: 10px; text-align: center; }
+        .card-depo { background: linear-gradient(135deg, #3a0ca3, #4361ee); }
+        .card-benefis { background: linear-gradient(135deg, #00b4d8, #06d6a0); color: #000; }
+        .card-title { font-size: 10px; font-weight: bold; text-transform: uppercase; margin-bottom: 5px; opacity: 0.9; }
+        .card-amount { font-size: 18px; font-weight: 800; }
+
+        .divizyon-box { background: #1c2541; padding: 12px; border-radius: 8px; border: 1px solid #3a506b; margin-bottom: 15px; font-size: 13px; color: #4ea8de; line-height: 1.5; }
+
+        .progress-container { background: #0b132b; border-radius: 8px; padding: 10px; margin-bottom: 12px; border: 1px solid #3a506b; }
+        .progress-bar-bg { width: 100%; background: #1c2541; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 6px; border: 1px solid #3a506b; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, #00b4d8, #00ff88); width: 0%; transition: width 0.3s ease; }
+
+        .task-box { background: #1c2541; border-radius: 12px; padding: 20px; border: 1px solid #3a506b; text-align: center; margin-bottom: 20px; }
+        .status-msg { font-size: 12px; color: #ffb703; margin: 10px 0; min-height: 18px; }
+
+        .section-title { color: #ffb703; font-size: 16px; font-weight: bold; margin-bottom: 12px; text-align: center; }
+        .vip-container { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .vip-card { background: #1c2541; border-radius: 10px; padding: 14px; border: 1px solid #3a506b; }
+        .vip-card.active-card { border: 2px solid #00ff88; background: linear-gradient(180deg, #1c2541, #0f2b26); }
+        .vip-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .vip-name { font-size: 16px; font-weight: bold; color: #00b4d8; }
+        .vip-price { font-size: 15px; font-weight: 800; color: #00ff88; }
+        .vip-details { font-size: 12px; color: #cbd5e1; margin-top: 5px; line-height: 1.5; }
+
+        .box-section { background: #1c2541; padding: 15px; border-radius: 10px; border: 1px solid #3a506b; margin-bottom: 15px; }
+        .ref-link-box { display: flex; align-items: center; justify-content: space-between; background: #0b132b; padding: 8px 12px; border-radius: 6px; font-size: 11px; color: #00ff88; word-break: break-all; margin: 10px 0; border: 1px dashed #3a506b; }
+        .fee-info { font-size: 11px; color: #ffb703; background: #0b132b; padding: 8px; border-radius: 6px; margin-top: 8px; border: 1px solid #3a506b; }
+        .copy-box { display: flex; align-items: center; justify-content: space-between; background: #0b132b; padding: 8px 12px; border-radius: 6px; border: 1px solid #3a506b; margin-top: 5px; font-size: 12px; color: #00ff88; word-break: break-all; }
+        .btn-copy { background: #00b4d8; color: #000; border: none; padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; margin-left: 10px; white-space: nowrap; }
+
+        .ref-level-card { background: #0b132b; border-radius: 8px; padding: 10px; margin-bottom: 8px; font-size: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #3a506b; }
+        .ref-level-card span { color: #00ff88; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. AUTH SCREEN -->
+    <div id="auth-screen" class="screen active">
+        <div class="auth-container">
+            <div class="logo" style="text-align:center; margin-bottom: 15px;">DLS<span>CASH</span> ⚡ USDT</div>
+            
+            <!-- LOGIN FORM -->
+            <div id="login-form">
+                <div class="auth-title">Konekte sou Kont ou</div>
+                <div class="form-group">
+                    <label>Imèl</label>
+                    <input type="email" id="login-email" placeholder="imel@gmail.com...">
+                </div>
+                <div class="form-group">
+                    <label>Modpas Kont</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="login-pass" placeholder="Antre modpas ou..." minlength="6">
+                        <button type="button" class="toggle-password" onclick="togglePassVisibility('login-pass', this)">👁️</button>
+                    </div>
+                </div>
+                <button class="btn-main" onclick="konekteKont()">Konekte Kounye a</button>
+                <div class="auth-switch" onclick="chanjeFòm('register')">Pa gen kont? Fè yon enskripsyon</div>
+                <div class="auth-switch" style="color: #ffb703;" onclick="chanjeFòm('forgot')">Mwen bliye modpas mwen?</div>
+                <p id="login-error-msg" style="font-size: 11px; color: #ff0055; text-align: center; margin-top: 8px; font-weight: bold;"></p>
+            </div>
+
+            <!-- REGISTER FORM -->
+            <div id="register-form" style="display: none;">
+                <div class="auth-title">Kreye yon Nouvo Kont</div>
+                <div class="form-group">
+                    <label>Non Konplè</label>
+                    <input type="text" id="reg-name" placeholder="Non ou...">
+                </div>
+                <div class="form-group">
+                    <label>Imèl ou telefon</label>
+                    <input type="email" id="reg-email" placeholder="imel@gmail.com... ">
+                </div>
+
+                <div class="form-group">
+                    <label>Modpas Kont (Omwen 6 karaktè)</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="reg-pass" placeholder="Kreye modpas (6+ karaktè)..." minlength="6">
+                        <button type="button" class="toggle-password" onclick="togglePassVisibility('reg-pass', this)">👁️</button>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Modpas Retrè (PIN 4-6 chif)</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="reg-pin" placeholder="Egzanp: 1234" maxlength="6">
+                        <button type="button" class="toggle-password" onclick="togglePassVisibility('reg-pin', this)">👁️</button>
+                    </div>
+                </div>
+                <button class="btn-main" onclick="anseyeKont()">Enskri epi Antre</button>
+                <div class="auth-switch" onclick="chanjeFòm('login')">Gen yon kont deja? Konekte</div>
+                <p id="reg-error-msg" style="font-size: 11px; color: #ff0055; text-align: center; margin-top: 8px; font-weight: bold;"></p>
+            </div>
+
+            <!-- FORGOT PASSWORD FORM -->
+            <div id="forgot-form" style="display: none;">
+                <div class="auth-title">Rekipere Modpas ou</div>
+                <p style="font-size: 12px; color: #cbd5e1; text-align: center; margin-bottom: 15px;">Antre imèl ou pou n voye yon lyen rekiperasyon ba ou.</p>
+                <div class="form-group">
+                    <label>Imèl Kont la</label>
+                    <input type="email" id="forgot-email" placeholder="imel@gmail.com...">
+                </div>
+                <button class="btn-main" onclick="remanjeModpas()">Voye Lyen Rekiperasyon an 📩</button>
+                <div class="auth-switch" onclick="chanjeFòm('login')">Tounen nan paj koneksyon an</div>
+                <p id="forgot-msg" style="font-size: 11px; text-align: center; margin-top: 8px; font-weight: bold;"></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. MAIN PLATFORM -->
+    <div id="main-screen" class="screen">
+        
+        <div class="header">
+            <div class="logo">DLS<span>CASH</span> ⚡ USDT</div>
+            <div>
+                <span id="user-display" style="color: #4ea8de; font-weight: bold; margin-right: 10px;">👤 Itilizatè</span>
+                <button onclick="fèDekonneksyon()" style="background: #ff0055; border:none; color:white; padding:4px 8px; border-radius:4px; font-size:10px; cursor:pointer;">Sòti</button>
+            </div>
+        </div>
+
+        <div class="nav-tabs" id="user-nav-tabs">
+            <button class="nav-tab active" onclick="chanjeTab('tab-tache', this)">🏠 Tâche & VIP</button>
+            <button class="nav-tab" onclick="chanjeTab('tab-retrait', this)">💳 Retrè</button>
+            <button class="nav-tab" onclick="chanjeTab('tab-ref', this)">🔗 Afilyasyon</button>
+            <button class="nav-tab" onclick="chanjeTab('tab-settings', this)">⚙️ Paramèt</button>
+        </div>
+
+        <!-- TAB 1: TACHE & VIP -->
+        <div id="tab-tache" class="tab-content">
+            <div class="balance-grid">
+                <div class="card card-depo">
+                    <div class="card-title">SÒLD DEPO (USDT)</div>
+                    <div class="card-amount" id="sold-depo">0.00 $</div>
+                </div>
+                <div class="card card-benefis">
+                    <div class="card-title">SÒLD BENEFIS (USDT)</div>
+                    <div class="card-amount" id="sold-benefis">0.00 $</div>
+                </div>
+            </div>
+
+            <button class="btn-deposit-open" onclick="toggleZònDepo()">➕ Fè yon Depo pou Achte VIP</button>
+
+            <!-- ZÒN FÈ DEPO -->
+            <div id="zwa-depo-container" class="box-section" style="display: none; border: 1px solid #ffb703;">
+                <h3 style="color: #ffb703; margin-bottom: 12px; font-size: 16px;">📥 Zòn Fè Depo Lajan</h3>
+                
+                <div class="form-group">
+                    <label>Chwazi Mòd Peman Depo a:</label>
+                    <select id="depo-metod" onchange="chofeMetodDepo()">
+                        <option value="">-- Chwazi Mòd --</option>
+                        <option value="usdt">USDT (TRC20) - Tron</option>
+                    </select>
+                </div>
+
+                <div id="info-depo-usdt" style="display: none; background: #0b132b; padding: 12px; border-radius: 8px; border: 1px dashed #00ff88; margin-bottom: 12px;">
+                    <div style="font-size: 12px; color: #00ff88; font-weight: bold; margin-bottom: 5px;">🌐 Voye USDT sou Rezo TRON (TRC20):</div>
+                    <div class="copy-box">
+                        <span id="binance-addr">TETsFJthsk1oHeRTSpRmkxBWKR7mHY922R</span>
+                        <button class="btn-copy" onclick="kopyeAdres()">Kopye</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Kantite Lajan w ap Depoze a ($)</label>
+                    <input type="number" id="depo-montan" placeholder="Egzanp: 10, 25, 50...">
+                </div>
+
+                <div class="form-group">
+                    <label style="color: #ffb703;">📷 Chwazi Prèv Depo a (Foto / Ekran)</label>
+                    <input type="file" id="depo-file" accept="image/*" style="padding: 8px; background: #0b132b; color: #cbd5e1;" onchange="validateDepositForm()">
+                    <span id="file-name-display" style="font-size: 11px; color: #00ff88; display: block; margin-top: 5px;"></span>
+                </div>
+
+                <div class="form-group">
+                    <label style="color: #ffb703;">🔑 Kòd Tranzaksyon Binance (TxID)</label>
+                    <input type="text" id="txIdInput" placeholder="Kole kòd TxID Binance ou a la a..." oninput="validateDepositForm()">
+                </div>
+
+                <div class="form-group" style="display: flex; align-items: center; gap: 10px; background: #0b132b; padding: 10px; border-radius: 8px; border: 1px solid #3a506b;">
+                    <input type="checkbox" id="confirmDeposit" style="width: 20px; height: 20px; accent-color: #00ff88;" onchange="validateDepositForm()">
+                    <label for="confirmDeposit" style="font-size: 11px; color: #cbd5e1; margin-bottom: 0; cursor: pointer;">Mwen konfime mwen deja fè transfè a sou Binance anvan mwen klike sou soumèt.</label>
+                </div>
+
+                <button class="btn-main" id="submitDepositBtn" onclick="voyeDemannDepo()" disabled>Soumèt Demann Depo a 🚀</button>
+                <p id="depo-msg" style="font-size: 12px; margin-top: 10px; text-align: center; font-weight: bold;"></p>
+            </div>
+
+            <div class="divizyon-box" id="vip-status">
+                Chaje estati VIP...
+            </div>
+
+            <div class="progress-container">
+                <div style="display: flex; justify-content: space-between; font-size: 12px; color: #cbd5e1;">
+                    <span>📊 Pògresyon Tache Jounen an</span>
+                    <span id="progress-text" style="color: #00ff88; font-weight: bold;">0 / 2 Fèt</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="progress-fill" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="task-box">
+                <div style="color: #ff0055; font-size: 14px; font-weight: bold; margin-bottom: 5px;">⚡ ZÒN TÂCHE JOUNEN AN</div>
+                <p style="font-size: 12px; color: #8a99ad;">Klike sou bouton anba a pou w valide tach ou yo.</p>
+                <div class="status-msg" id="status-msg">Prè pou valide tach la.</div>
+                <button class="btn-main" id="btn-task" onclick="valideTach()" style="margin-top:0;">KLIKE POU W VALIDE TÂCHE LA 🚀</button>
+            </div>
+
+            <div class="section-title">👑 PLAN VIP YO (USDT)</div>
+            <div class="vip-container" id="vip-list-container"></div>
+        </div>
+
+        <!-- TAB 2: RETRÈ KÒB -->
+        <div id="tab-retrait" class="tab-content" style="display: none;">
+            <div class="box-section">
+                <h3 style="color: #00b4d8; margin-bottom: 12px; font-size: 16px;">💳 Demann Retrè Fon</h3>
+                
+                <div class="form-group">
+                    <label for="type_retrait">Mòd Retrè / Tranzaksyon:</label>
+                    <select id="type_retrait">
+                        <option value="usdt">USDT (TRC20)</option>
+                    </select>
+                </div>
+
+                <div id="div_usdt" style="background: #0b132b; padding: 10px; border-radius: 8px; border: 1px dashed #00ff88; margin-bottom: 15px;">
+                    <div class="form-group" style="margin-bottom: 0;">
+                        <label style="color: #00ff88;">🌐 Adrès Wallet / Imèl Binance (TRC20):</label>
+                        <input type="text" id="adresse_usdt" placeholder="Egzanp: Imèl Binance oswa adrès T...">
+                    </div>
+                </div>
+       
+                <div class="form-group">
+                    <label>Kantite pou Retire ($)</label>
+                    <input type="number" id="withdraw-amount" placeholder="Egzanp: 10" oninput="kalkileFreRetre()">
+                </div>
+
+                <div class="fee-info" id="fee-preview">
+                    📌 Frè Retrè (5%): <b>0.00 $</b> | Wa resevwa nèt: <b style="color:#00ff88;">0.00 $</b>
+                </div>
+
+                <div class="form-group" style="margin-top: 15px;">
+                    <label style="color: #ffb703;">🔒 Modpas Retrè (PIN)</label>
+                    <div class="password-wrapper">
+                        <input type="password" id="withdraw-password" placeholder="PIN ou..." maxlength="6">
+                        <button type="button" class="toggle-password" onclick="togglePassVisibility('withdraw-password', this)">👁️</button>
+                    </div>
+                </div>
+                <button class="btn-main" onclick="mandeRetrait()">Voye Demann Retrè a</button>
+                <p id="withdraw-msg" style="font-size: 12px; margin-top: 10px; text-align: center; font-weight: bold;"></p>
+            </div>
+        </div>
+
+        <!-- TAB 3: AFILYASYON -->
+        <div id="tab-ref" class="tab-content" style="display: none;">
+            <div class="box-section">
+                <h3 style="color: #00b4d8; margin-bottom: 10px; font-size: 16px;">🔗 Pwogram Afilyasyon (3 Nivo)</h3>
+                <p style="font-size: 12px; color: #cbd5e1; margin-bottom: 12px;">Pataje lyen w lan pou w touche komisyon an USDT sou chak nivo:</p>
+                
+                <div class="ref-level-card">
+                    <div><b>Level 1 (10 Moun):</b> 5% Komisyon</div>
+                    <span id="ref-count-1">0 Moun</span>
+                </div>
+                <div class="ref-level-card">
+                    <div><b>Level 2 (25 Moun):</b> 10% Komisyon</div>
+                    <span id="ref-count-2">0 Moun</span>
+                </div>
+                <div class="ref-level-card">
+                    <div><b>Level 3 (50 Moun):</b> 15% Komisyon</div>
+                    <span id="ref-count-3">0 Moun</span>
+                </div>
+
+                <div class="ref-link-box" style="margin-top: 15px;">
+                    <span id="my-ref-link" style="display:none;"></span>
+                    <span id="my-ref-display" style="color: #00ff88; font-weight: bold;">dlscash.usdt/UID</span>
+                    <button class="btn-copy" onclick="kopyeLyenAfilyasyon()">Kopye Lyen</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 4: PARAMÈT -->
+        <div id="tab-settings" class="tab-content" style="display: none;">
+            <div class="box-section">
+                <h3 style="color: #00b4d8; margin-bottom: 15px; font-size: 16px;">📲 Konfigirasyon Mòd Peman & Sekirite</h3>
+
+                <div class="form-group">
+                    <label>Mòd Peman Prefere:</label>
+                    <select id="set-mod">
+                        <option value="">-- Chwazi mòd ou pi pito --</option>
+                        <option value="usdt">USDT (Binance / Wallet)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Adrès USDT</label>
+                    <input type="text" id="set-usdt" placeholder="Egzanp: T...">
+                </div>
+                <div class="form-group">
+                    <label for="new-pin">Kòd PIN Retrè (4-6 chif)</label>
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input type="password" id="new-pin" maxlength="6" placeholder="Antre yon nouvo PIN sekrè" style="width: 100%; padding-right: 40px;">
+                        <button type="button" onclick="baskileVizibilitePin('new-pin', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer;">👁️</button>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirm-pin">Konfime Kòd PIN</label>
+                    <div style="position: relative; display: flex; align-items: center;">
+                        <input type="password" id="confirm-pin" maxlength="6" placeholder="Repete PIN ou" style="width: 100%; padding-right: 40px;">
+                        <button type="button" onclick="baskileVizibilitePin('confirm-pin', this)" style="position: absolute; right: 10px; background: none; border: none; cursor: pointer;">👁️</button>
+                    </div>
+                </div>
+
+                <hr style="margin: 25px 0; border: 0; border-top: 1px solid #3a506b;">
+
+                <button class="btn-main" onclick="soveParamet()">Anrejistre Paramèt Peman yo</button>
+                <p id="set-msg" style="font-size: 12px; margin-top: 10px; text-align: center; font-weight: bold;"></p>
+
+                <hr style="margin: 25px 0; border: 0; border-top: 1px solid #3a506b;">
+
+                <h3>Reyinisyalize Kòd PIN (Si w bliye l)</h3>
+                <div class="form-group" style="margin-top: 15px;">
+                    <label for="reset-email">Antre imèl kont ou</label>
+                    <input type="email" id="reset-email" placeholder="Imèl ou te anrejistre a">
+                </div>
+                <button type="button" class="btn-main" style="background: linear-gradient(90deg, #ff0055, #990033);" onclick="reyinisyalizePin()">Voye Lyen Reyinisyalizasyon PIN / Modpas</button>
+                <p id="reset-status-msg" style="margin-top: 10px; font-weight: bold;"></p>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Inisyalizasyon EmailJS ak kle w la
+        emailjs.init("ivBhj7Lof3VPozFvp");
+
+        const vipCatalog = {
+            0: { id: 0, name: "VIP 0", price: 0, duration: 24 * 60 * 60 * 1000, tasks: 2, pay: 0.01 },
+            1: { id: 1, name: "VIP 1", price: 10, duration: 30 * 24 * 60 * 60 * 1000, tasks: 3, pay: 0.10 },
+            2: { id: 2, name: "VIP 2", price: 25, duration: 30 * 24 * 60 * 60 * 1000, tasks: 4, pay: 0.25 },
+            3: { id: 3, name: "VIP 3", price: 50, duration: 30 * 24 * 60 * 60 * 1000, tasks: 5, pay: 0.50 },
+            4: { id: 4, name: "VIP 4", price: 100, duration: 30 * 24 * 60 * 60 * 1000, tasks: 6, pay: 1.00 },
+            5: { id: 5, name: "VIP 5", price: 200, duration: 30 * 24 * 60 * 60 * 1000, tasks: 8, pay: 2.00 }
+        };
+
+        let currentUser = null;
+        let userDataCache = {};
+        let referralCodeToRegister = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const refParam = urlParams.get('ref');
+            if (refParam) {
+                referralCodeToRegister = refParam;
+                localStorage.setItem('dlscash_ref', refParam);
+            } else {
+                referralCodeToRegister = localStorage.getItem('dlscash_ref');
+            }
+
+            setTimeout(() => {
+                if(window.fbOnAuth) {
+                    window.fbOnAuth(window.firebaseAuth, async (user) => {
+                        if (user) {
+                            currentUser = user;
+                            await chajeDoneItilizatè(user.uid);
+                            antreNanPlatfòm();
+                        } else {
+                            fèDekonneksyonUI();
+                        }
+                    });
+                }
+            }, 1000);
+        });
+
+        // Fonksyon pou voye imèl notifikasyon bay admin nan otomatikman
+        async function voyeNotifikasyonImelAdmin(tipTranzaksyon, nonItilizatè, montan) {
+            let templateParams = {
+                admin_email: "fontalfontal61@gmail.com",
+                transaction_type: tipTranzaksyon.toUpperCase(),
+                user_name: nonItilizatè,
+                amount: montan,
+                date: new Date().toLocaleString()
+            };
+
+            try {
+                await emailjs.send('service_dsqs62t', 'template_pwf6yk9', templateParams);
+                console.log("Notifikasyon imèl la voye bay admin nan avèk siksè!");
+            } catch (error) {
+                console.error("Erè nan voye imèl:", error);
+            }
+        }
+
+        function chanjeFòm(fomTip) {
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('register-form').style.display = 'none';
+            document.getElementById('forgot-form').style.display = 'none';
+
+            if (fomTip === 'register') {
+                document.getElementById('register-form').style.display = 'block';
+            } else if (fomTip === 'forgot') {
+                document.getElementById('forgot-form').style.display = 'block';
+            } else {
+                document.getElementById('login-form').style.display = 'block';
+            }
+        }
+
+        function togglePassVisibility(inputId, btn) {
+            let input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                btn.textContent = "🙈";
+            } else {
+                input.type = "password";
+                btn.textContent = "👁️";
+            }
+        }
+
+        async function konekteKont() {
+            let email = document.getElementById('login-email').value.trim();
+            let pass = document.getElementById('login-pass').value;
+            let err = document.getElementById('login-error-msg');
+            err.textContent = "";
+
+            if (!email || !pass) {
+                err.textContent = "⚠️ Tanpri ranpli tout chan yo!";
+                return;
+            }
+
+            try {
+                let res = await window.fbSignIn(window.firebaseAuth, email, pass);
+                currentUser = res.user;
+                await chajeDoneItilizatè(currentUser.uid);
+                antreNanPlatfòm();
+            } catch (error) {
+                err.textContent = "❌ Erè koneksyon: " + error.message;
+            }
+        }
+
+        async function anseyeKont() {
+            let name = document.getElementById('reg-name').value.trim();
+            let email = document.getElementById('reg-email').value.trim();
+            let pass = document.getElementById('reg-pass').value;
+            let pin = document.getElementById('reg-pin').value.trim();
+            let err = document.getElementById('reg-error-msg');
+            err.textContent = "";
+
+            if (!name || !email || !pass || !pin) {
+                err.textContent = "⚠️ Tanpri ranpli tout enfòmasyon yo!";
+                return;
+            }
+            if (pass.length < 6) {
+                err.textContent = "⚠️ Modpas kont lan dwe gen omwen 6 karaktè!";
+                return;
+            }
+
+            try {
+                let res = await window.fbSignUp(window.firebaseAuth, email, pass);
+                let uid = res.user.uid;
+                
+                let nouvoItilizatè = {
+                    uid: uid,
+                    name: name,
+                    email: email,
+                    pin: pin,
+                    soldDepo: 0,
+                    soldBenefis: 0,
+                    vipLevel: 0,
+                    vipExpiry: Date.now() + 24 * 60 * 60 * 1000,
+                    tacheFèt: 0,
+                    denyeDatTache: "",
+                    refBy: referralCodeToRegister || "",
+                    refCount1: 0,
+                    refCount2: 0,
+                    refCount3: 0,
+                    modPeman: "",
+                    usdt: ""
+                };
+
+                let userRef = window.fbDoc(window.firebaseDb, "users", uid);
+                await window.fbSetDoc(userRef, nouvoItilizatè);
+
+                if (referralCodeToRegister) {
+                    await ajouAfilyasyonEchlon(referralCodeToRegister);
+                }
+
+                currentUser = res.user;
+                userDataCache = nouvoItilizatè;
+                antreNanPlatfòm();
+            } catch (error) {
+                err.textContent = "❌ Erè enskripsyon: " + error.message;
+            }
+        }
+
+        async function remanjeModpas() {
+            let email = document.getElementById('forgot-email').value.trim();
+            let msg = document.getElementById('forgot-msg');
+            if (!email) {
+                msg.style.color = "#ff0055";
+                msg.textContent = "⚠️ Antre imèl kont ou a!";
+                return;
+            }
+            try {
+                await window.fbResetPass(window.firebaseAuth, email);
+                msg.style.color = "#00ff88";
+                msg.textContent = "✅ Lyen rekiperasyon an voye nan imèl ou!";
+            } catch (error) {
+                msg.style.color = "#ff0055";
+                msg.textContent = "❌ Erè: " + error.message;
+            }
+        }
+
+        async function chajeDoneItilizatè(uid) {
+            try {
+                let userRef = window.fbDoc(window.firebaseDb, "users", uid);
+                let snap = await window.fbGetDoc(userRef);
+                if (snap.exists()) {
+                    userDataCache = snap.data();
+                }
+            } catch (e) {
+                console.log("Erè chaje done:", e);
+            }
+        }
+
+        function antreNanPlatfòm() {
+            document.getElementById('auth-screen').classList.remove('active');
+            document.getElementById('main-screen').classList.add('active');
+            document.getElementById('user-display').textContent = "👤 " + (userDataCache.name || "Itilizatè");
+            
+            hizatèEkran();
+            renouvleVizyelVIP();
+            renouvleStatistikTache();
+            meteAjouLyenAfilyasyon();
+        }
+
+        function fèDekonneksyon() {
+            window.fbSignOut(window.firebaseAuth).then(() => {
+                fèDekonneksyonUI();
+            });
+        }
+
+        function fèDekonneksyonUI() {
+            currentUser = null;
+            userDataCache = {};
+            document.getElementById('main-screen').classList.remove('active');
+            document.getElementById('auth-screen').classList.add('active');
+            chanjeFòm('login');
+        }
+
+        function chanjeTab(tabId, btnElement) {
+            let contents = document.querySelectorAll('.tab-content');
+            contents.forEach(c => c.style.display = 'none');
+            document.getElementById(tabId).style.display = 'block';
+
+            let tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(t => t.classList.remove('active'));
+            if(btnElement) btnElement.classList.add('active');
+        }
+
+        function hizatèEkran() {
+            document.getElementById('sold-depo').textContent = Number(userDataCache.soldDepo || 0).toFixed(2) + " $";
+            document.getElementById('sold-benefis').textContent = Number(userDataCache.soldBenefis || 0).toFixed(2) + " $";
+
+            document.getElementById('set-mod').value = userDataCache.modPeman || "";
+            document.getElementById('set-usdt').value = userDataCache.usdt || "";
+        }
+
+        function toggleZònDepo() {
+            let box = document.getElementById('zwa-depo-container');
+            box.style.display = box.style.display === 'none' ? 'block' : 'none';
+        }
+
+        function chofeMetodDepo() {
+            let m = document.getElementById('depo-metod').value;
+            document.getElementById('info-depo-usdt').style.display = m === 'usdt' ? 'block' : 'none';
+        }
+
+        function kopyeAdres() {
+            let adr = document.getElementById('binance-addr').textContent;
+            navigator.clipboard.writeText(adr);
+            alert("✅ Adrès USDT a kopye!");
+        }
+
+        let selectedDepotFileBase64 = "";
+
+        function validateDepositForm() {
+            let fileInput = document.getElementById('depo-file');
+            let display = document.getElementById('file-name-display');
+            let txIdInput = document.getElementById('txIdInput').value.trim();
+            let confirmCheckbox = document.getElementById('confirmDeposit').checked;
+            let submitBtn = document.getElementById('submitDepositBtn');
+
+            let hasFile = false;
+
+            if (fileInput.files && fileInput.files[0]) {
+                let file = fileInput.files[0];
+                display.textContent = "📄 Chwazi: " + file.name;
+                hasFile = true;
+                let reader = new FileReader();
+                reader.onload = function(e) {
+                    selectedDepotFileBase64 = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                display.textContent = "";
+            }
+
+            if (hasFile && txIdInput !== "" && confirmCheckbox) {
+                submitBtn.removeAttribute('disabled');
+            } else {
+                submitBtn.setAttribute('disabled', 'true');
+            }
+        }
+
+        async function voyeDemannDepo() {
+            let metod = document.getElementById('depo-metod').value;
+            let montan = parseFloat(document.getElementById('depo-montan').value);
+            let txId = document.getElementById('txIdInput').value.trim();
+            let confirmCheckbox = document.getElementById('confirmDeposit').checked;
+            let msg = document.getElementById('depo-msg');
+
+            if (!metod || !montan || montan <= 0 || !txId || !selectedDepotFileBase64 || !confirmCheckbox) {
+                msg.style.color = "#ff0055";
+                msg.textContent = "⚠️ Tanpri asire w ou mete tout enfòmasyon yo ak prèv la!";
+                return;
+            }
+
+            msg.style.color = "#ffb703";
+            msg.textContent = "⏳ Ap voye demann depo a...";
+
+            try {
+                let transRef = window.fbDoc(window.fbCollection(window.firebaseDb, "transactions"));
+                await window.fbSetDoc(transRef, {
+                    id: transRef.id,
+                    uid: currentUser.uid,
+                    userName: userDataCache.name || "Itilizatè",
+                    type: "depo",
+                    metod: metod,
+                    montan: montan,
+                    txId: txId,
+                    adresOtr: selectedDepotFileBase64,
+                    status: "annatant",
+                    date: new Date().toLocaleString()
+                });
+
+                await voyeNotifikasyonImelAdmin("depo", userDataCache.name || "Itilizatè", montan);
+
+                msg.style.color = "#00ff88";
+                msg.textContent = "✅ Demann depoze w la voye bay admin lan ak siksè!";
+                
+                document.getElementById('depo-montan').value = "";
+                document.getElementById('depo-file').value = "";
+                document.getElementById('txIdInput').value = "";
+                document.getElementById('confirmDeposit').checked = false;
+                document.getElementById('file-name-display').textContent = "";
+                document.getElementById('submitDepositBtn').setAttribute('disabled', 'true');
+                selectedDepotFileBase64 = "";
+            } catch (e) {
+                msg.style.color = "#ff0055";
+                msg.textContent = "❌ Erè: " + e.message;
+            }
+        }
+
+        function renouvleVizyelVIP() {
+            let container = document.getElementById('vip-list-container');
+            container.innerHTML = "";
+            let currentVip = userDataCache.vipLevel || 0;
+
+            document.getElementById('vip-status').innerHTML = `👑 Estati Aktyèl: <b>VIP ${currentVip}</b> | Tâche pa jou: <b>${vipCatalog[currentVip].tasks}</b> | Peman pou chak tâde: <b style="color:#00ff88;">${vipCatalog[currentVip].pay} $</b>`;
+
+            for (let id in vipCatalog) {
+                let vip = vipCatalog[id];
+                let isActive = Number(currentVip) === Number(id);
+
+                let html = `
+                    <div class="vip-card ${isActive ? 'active-card' : ''}">
+                        <div class="vip-header">
+                            <span class="vip-name">${vip.name}</span>
+                            <span class="vip-price">${vip.price === 0 ? 'Gratis' : vip.price + ' $'}</span>
+                        </div>
+                        <div class="vip-details">
+                            📌 Tâches pa jou: <b>${vip.tasks}</b><br>
+                            💵 Peman pa Tâche: <b>${vip.pay} $</b><br>
+                            ⏳ Dire Plan: <b>30 Jou</b>
+                        </div>
+                        ${!isActive && vip.price > 0 ? `<button class="btn-vip-buy" onclick="achteVIP(${vip.id}, ${vip.price})">Achte ${vip.name} (${vip.price}$)</button>` : ''}
+                    </div>
+                `;
+                container.innerHTML += html;
+            }
+        }
+
+        async function achteVIP(vipId, price) {
+            let soldDepo = Number(userDataCache.soldDepo || 0);
+            if (soldDepo < price) {
+                alert("❌ Sòld depo w la pa sufizan pou achte plan sa a! Fè yon depo dabò.");
+                return;
+            }
+
+            if (confirm(`Èske w sèten ou vle achte VIP ${vipId} pou ${price} $ ?`)) {
+                userDataCache.soldDepo = soldDepo - price;
+                userDataCache.vipLevel = vipId;
+                userDataCache.vipExpiry = Date.now() + 30 * 24 * 60 * 60 * 1000;
+
+                let userRef = window.fbDoc(window.firebaseDb, "users", currentUser.uid);
+                await window.fbSetDoc(userRef, {
+                    soldDepo: userDataCache.soldDepo,
+                    vipLevel: userDataCache.vipLevel,
+                    vipExpiry: userDataCache.vipExpiry
+                }, { merge: true });
+
+                hizatèEkran();
+                renouvleVizyelVIP();
+                renouvleStatistikTache();
+                alert("🎉 Felisitasyon! Ou achte plan VIP a ak siksè.");
+            }
+        }
+
+        function renouvleStatistikTache() {
+            let jodi = new Date().toDateString();
+            if (userDataCache.denyeDatTache !== jodi) {
+                userDataCache.tacheFèt = 0;
+                userDataCache.denyeDatTache = jodi;
+                let userRef = window.fbDoc(window.firebaseDb, "users", currentUser.uid);
+                window.fbSetDoc(userRef, { tacheFèt: 0, denyeDatTache: jodi }, { merge: true });
+            }
+
+            let maxTasks = vipCatalog[userDataCache.vipLevel || 0].tasks;
+            let fèt = userDataCache.tacheFèt || 0;
+
+            document.getElementById('progress-text').textContent = `${fèt} / ${maxTasks} Fèt`;
+            let pcts = (fèt / maxTasks) * 100;
+            document.getElementById('progress-fill').style.width = pcts + "%";
+
+            let btnTask = document.getElementById('btn-task');
+            if (fèt >= maxTasks) {
+                btnTask.disabled = true;
+                btnTask.style.background = "#3a506b";
+                document.getElementById('status-msg').textContent = "✅ Ou fini tout tach jounen an! Tounen demen.";
+            } else {
+                btnTask.disabled = false;
+                btnTask.style.background = "linear-gradient(90deg, #ff0055, #ff5400)";
+                document.getElementById('status-msg').textContent = "Prè pou valide tach la.";
+            }
+        }
+
+        async function valideTach() {
+            let maxTasks = vipCatalog[userDataCache.vipLevel || 0].tasks;
+            let fèt = userDataCache.tacheFèt || 0;
+
+            if (fèt >= maxTasks) return;
+
+            userDataCache.tacheFèt = fèt + 1;
+            let payPerTask = vipCatalog[userDataCache.vipLevel || 0].pay;
+            userDataCache.soldBenefis = Number(userDataCache.soldBenefis || 0) + payPerTask;
+
+            let userRef = window.fbDoc(window.firebaseDb, "users", currentUser.uid);
+            await window.fbSetDoc(userRef, {
+                tacheFèt: userDataCache.tacheFèt,
+                soldBenefis: userDataCache.soldBenefis
+            }, { merge: true });
+
+            hizatèEkran();
+            renouvleStatistikTache();
+            document.getElementById('status-msg').textContent = `🎉 Siksè! Ou ganyen +${payPerTask}$ nan sol benefis ou.`;
+        }
+
+        async function mandeRetrait() {
+            try {
+                let confRef = window.fbDoc(window.firebaseDb, "settings", "withdrawConfig");
+                let snap = await window.fbGetDoc(confRef);
+                if (snap.exists() && snap.data().isOpen === false) {
+                    alert("🔴 Sistèm retrè a FÈMEN pa administratè a kounye a.");
+                    return;
+                }
+            } catch (e) {
+                console.log("Erè verifye estati retrè:", e);
+            }
+
+            let tip = "usdt"; // Retrè fèt sèlman sou USDT kounye a
+            let montan = parseFloat(document.getElementById('withdraw-amount').value);
+            let pin = document.getElementById('withdraw-password').value.trim();
+            let msg = document.getElementById('withdraw-msg');
+
+            if (!montan || montan <= 0 || !pin) {
+                msg.style.color = "#ff0055";
+                msg.textContent = "⚠️ Tanpri ranpli tout chan yo kòrèkteman!";
+                return;
+            }
+
+            if (pin !== userDataCache.pin) {
+                msg.style.color = "#ff0055";
+                msg.textContent = "❌ Modpas Retrè (PIN) ou a pa kòrèk!";
+                return;
+            }
+
+            let soldBenefis = Number(userDataCache.soldBenefis || 0);
+            if (soldBenefis < montan) {
+                msg.style.color = "#ff0055";
+                msg.textContent = "❌ Sòld benefis ou pa sufizan pou kantite sa a!";
+                return;
+            }
+
+            let detayDestinasyon = document.getElementById('adresse_usdt').value.trim();
+            if (!detayDestinasyon) {
+                msg.style.color = "#ff0055";
+                msg.textContent = "⚠️ Antre adrès USDT ou a!";
+                return;
+            }
+
+            msg.style.color = "#ffb703";
+            msg.textContent = "⏳ Ap voye demann retrè a...";
+
+            try {
+                userDataCache.soldBenefis = soldBenefis - montan;
+                let userRef = window.fbDoc(window.firebaseDb, "users", currentUser.uid);
+                await window.fbSetDoc(userRef, { soldBenefis: userDataCache.soldBenefis }, { merge: true });
+
+                let transRef = window.fbDoc(window.fbCollection(window.firebaseDb, "transactions"));
+                await window.fbSetDoc(transRef, {
+                    id: transRef.id,
+                    uid: currentUser.uid,
+                    userName: userDataCache.name || "Itilizatè",
+                    type: "retrait",
+                    metod: tip,
+                    montan: montan,
+                    adresOtr: detayDestinasyon,
+                    status: "annatant",
+                    date: new Date().toLocaleString()
+                });
+
+                await voyeNotifikasyonImelAdmin("retrait", userDataCache.name || "Itilizatè", montan);
+
+                hizatèEkran();
+                msg.style.color = "#00ff88";
+                msg.textContent = "✅ Demann retrè w la voye ak siksè!";
+                document.getElementById('withdraw-amount').value = "";
+                document.getElementById('withdraw-password').value = "";
+            } catch (e) {
+                msg.style.color = "#ff0055";
+                msg.textContent = "❌ Erè: " + e.message;
+            }
+        }
+
+        function kalkileFreRetre() {
+            let montan = parseFloat(document.getElementById('withdraw-amount').value) || 0;
+            let fee = montan * 0.05;
+            let net = montan - fee;
+            document.getElementById('fee-preview').innerHTML = `📌 Frè Retrè (5%): <b>${fee.toFixed(2)} $</b> | Wa resevwa nèt: <b style="color:#00ff88;">${net.toFixed(2)} $</b>`;
+        }
+
+        function meteAjouLyenAfilyasyon() {
+            let link = window.location.origin + window.location.pathname + "?ref=" + currentUser.uid;
+            document.getElementById('my-ref-link').textContent = link;
+            document.getElementById('my-ref-display').textContent = "dlscash.usdt/ref?id=" + currentUser.uid.substring(0,6);
+
+            document.getElementById('ref-count-1').textContent = (userDataCache.refCount1 || 0) + " Moun";
+            document.getElementById('ref-count-2').textContent = (userDataCache.refCount2 || 0) + " Moun";
+            document.getElementById('ref-count-3').textContent = (userDataCache.refCount3 || 0) + " Moun";
+        }
+
+        function kopyeLyenAfilyasyon() {
+            let link = document.getElementById('my-ref-link').textContent || (window.location.origin + "?ref=" + currentUser.uid);
+            navigator.clipboard.writeText(link);
+            alert("✅ Lyen afilyasyon w lan kopye nan memwa a!");
+        }
+
+        async function ajouAfilyasyonEchlon(refUid) {
+            try {
+                let refDocRef = window.fbDoc(window.firebaseDb, "users", refUid);
+                let snap = await window.fbGetDoc(refDocRef);
+                if (snap.exists()) {
+                    let d = snap.data();
+                    let nouvoC1 = (d.refCount1 || 0) + 1;
+                    await window.fbSetDoc(refDocRef, { refCount1: nouvoC1 }, { merge: true });
+                }
+            } catch (e) {
+                console.log("Erè afilyasyon:", e);
+            }
+        }
+
+        async function soveParamet() {
+            let mod = document.getElementById('set-mod').value;
+            let usdt = document.getElementById('set-usdt').value.trim();
+            let pin = document.getElementById('new-pin').value.trim();
+            let confirmPin = document.getElementById('confirm-pin').value.trim();
+            let msg = document.getElementById('set-msg');
+
+            msg.textContent = "";
+
+            if (pin || confirmPin) {
+                if (pin !== confirmPin) {
+                    msg.style.color = "#ff0055";
+                    msg.textContent = "❌ Erè: De kòd PIN yo pa matche!";
+                    return;
+                }
+                if (pin.length < 4) {
+                    msg.style.color = "#ff0055";
+                    msg.textContent = "⚠️ Kòd PIN lan dwe gen omwen 4 chif!";
+                    return;
+                }
+            }
+
+            msg.style.color = "#ffb703";
+            msg.textContent = "⏳ Ap anrejistre paramèt yo nan baz done a...";
+
+            try {
+                let updateData = {
+                    modPeman: mod,
+                    usdt: usdt
+                };
+
+                if (pin) {
+                    updateData.pin = pin;
+                    userDataCache.pin = pin;
+                }
+
+                userDataCache.modPeman = mod;
+                userDataCache.usdt = usdt;
+
+                let userRef = window.fbDoc(window.firebaseDb, "users", currentUser.uid);
+                await window.fbSetDoc(userRef, updateData, { merge: true });
+
+                msg.style.color = "#00ff88";
+                msg.textContent = "✅ Paramèt ak kòd PIN ou yo anrejistre avèk siksè nan baz done a!";
+                
+                document.getElementById('new-pin').value = "";
+                document.getElementById('confirm-pin').value = "";
+            } catch (e) {
+                msg.style.color = "#ff0055";
+                msg.textContent = "❌ Erè: " + e.message;
+            }
+        }
+
+        async function reyinisyalizePin() {
+            const imèlAntre = document.getElementById('reset-email').value.trim();
+            const msgElement = document.getElementById('reset-status-msg');
+
+            msgElement.textContent = "";
+
+            if (!imèlAntre) {
+                msgElement.style.color = "#ff0055";
+                msgElement.textContent = "⚠️ Tanpri antre imèl kont ou a.";
+                return;
+            }
+
+            msgElement.style.color = "#ffb703";
+            msgElement.textContent = "⏳ N ap voye lyen rekiperasyon an...";
+
+            try {
+                await window.fbResetPass(window.firebaseAuth, imèlAntre);
+                
+                msgElement.style.color = "#00ff88";
+                msgElement.textContent = "✅ Yon imèl rekiperasyon voye sou adrès ou a! Gade nan bwat imèl ou pou reset modpas kont ou.";
+            } catch (error) {
+                msgElement.style.color = "#ff0055";
+                msgElement.textContent = "❌ Erè: Imèl sa a pa koresponn ak okenn kont aktif nan sistèm nan (" + error.message + ").";
+            }
+        }
+
+        function baskileVizibilitePin(idInput, btn) {
+            const input = document.getElementById(idInput);
+            if (input.type === "password") {
+                input.type = "text";
+                btn.textContent = "👁️‍🗨️"; 
+            } else {
+                input.type = "password";
+                btn.textContent = "👁️"; 
+            }
+        }
+    </script>
+</body>
+</html>
