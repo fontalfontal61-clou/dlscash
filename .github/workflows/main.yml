@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="ht">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DLSCash - Akèy</title>
+
+    <!-- Firebase SDK Scripts -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getFirestore, doc, getDoc, updateDoc, deleteDoc, collection, getDocs, setDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-Ynh3seDppzEYGzt_Yzj6IzcgtAsRACA",
+            authDomain: "dls-cash-app.firebaseapp.com",
+            projectId: "dls-cash-app",
+            storageBucket: "dls-cash-app.firebasestorage.app",
+            messagingSenderId: "189289401671",
+            appId: "1:189289401671:web:80421cd364b84fc08f1062"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        window.firebaseDb = db;
+        window.fbDoc = doc;
+        window.fbGetDoc = getDoc;
+        window.fbUpdateDoc = updateDoc;
+        window.fbDeleteDoc = deleteDoc;
+        window.fbCollection = collection;
+        window.fbGetDocs = getDocs;
+        window.fbSetDoc = setDoc;
+    </script>
+
+    <!-- EmailJS SDK -->
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+    <script type="text/javascript">
+        (function() {
+            emailjs.init("ivBhj7Lof3VPozFvp");
+        })();
+    </script>
+
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b132b; color: #ffffff; padding: 15px; }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 2px solid #1c2541; margin-bottom: 15px; }
+        .logo { font-size: 22px; font-weight: 900; color: #ffb703; }
+        .logo span { color: #ff0055; }
+
+        .auth-container { max-width: 400px; margin: 40px auto; background: #1c2541; padding: 25px; border-radius: 12px; border: 1px solid #3a506b; }
+        .auth-title { text-align: center; color: #ffb703; font-size: 20px; font-weight: bold; margin-bottom: 20px; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 12px; font-weight: bold; margin-bottom: 5px; color: #cbd5e1; }
+        .form-group input { width: 100%; padding: 12px; background: #0b132b; border: 1px solid #3a506b; border-radius: 8px; color: white; font-size: 14px; }
+        
+        .password-wrapper { position: relative; }
+        .password-wrapper input { padding-right: 40px; }
+        .toggle-password { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; color: #8a99ad; }
+
+        .btn-main { width: 100%; background: linear-gradient(90deg, #ffb703, #fb8500); color: #0b132b; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; box-shadow: 0 4px 10px rgba(255, 183, 3, 0.3); }
+        
+        .box-section { background: #1c2541; padding: 15px; border-radius: 10px; border: 1px solid #ffb703; margin-bottom: 20px; }
+        .btn-copy { background: #00b4d8; color: #000; border: none; padding: 6px 12px; border-radius: 4px; font-size: 12px; font-weight: bold; cursor: pointer; }
+
+        .admin-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+        .admin-table th, .admin-table td { border: 1px solid #3a506b; padding: 8px; text-align: left; }
+        .admin-table th { background: #1c2541; color: #ffb703; }
+        .admin-table td { background: #0b132b; color: #cbd5e1; }
+        
+        .btn-action { padding: 5px 8px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; border: none; margin: 2px 0; }
+        .btn-delete { background: #ff0055; color: #fff; }
+        .btn-block { background: #ffb703; color: #000; }
+        .btn-unblock { background: #00ff88; color: #000; }
+        .btn-approve { background: #00ff88; color: #000; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; }
+        .btn-reject { background: #ff0055; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; margin-top: 4px; }
+        .btn-adjust { background: #00b4d8; color: #000; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
+        .stat-card { background: #1c2541; padding: 15px; border-radius: 10px; border: 1px solid #3a506b; text-align: center; }
+        .stat-card h4 { font-size: 13px; color: #8a99ad; margin-bottom: 5px; }
+        .stat-card p { font-size: 20px; font-weight: bold; color: #ffb703; }
+    </style>
+</head>
+<body>
+
+    <!-- 1. PAJ AKÈY / KLIK POU ADMIN -->
+    <div id="home-screen" class="screen active">
+        <div class="auth-container" style="text-align: center;">
+            <div class="logo" style="font-size: 28px; margin-bottom: 10px;">DLS<span>CASH</span></div>
+            <p style="color: #cbd5e1; font-size: 14px; margin-bottom: 25px;">Byenveni sou platfòm nan. Chwazi kote ou vle ale:</p>
+            
+            <button class="btn-main" onclick="aleNanLoginKliyan()" style="margin-bottom: 12px; background: #00b4d8; color: #000;">Kliyan / Itilizatè 👤</button>
+            <button class="btn-main" onclick="aleNanLoginAdmin()">Aksè Panel Admin 🛡️</button>
+        </div>
+    </div>
+
+    <!-- 2. LOGIN KLIK / ITILIZATÈ (Egzanp) -->
+    <div id="client-auth-screen" class="screen">
+        <div class="auth-container">
+            <div class="logo" style="text-align:center; margin-bottom: 15px;">DLS<span>CASH</span> 👤 Kliyan</div>
+            <div class="auth-title">Koneksyon Itilizatè</div>
+            <p style="text-align: center; font-size: 13px; color: #cbd5e1; margin-bottom: 15px;">(Seksyon kliyan aktif. Pou ale nan panel admin an, klike sou bouton anba a).</p>
+            <button class="btn-main" onclick="aleNanLoginAdmin()" style="background: #3a506b; color: #fff;">Ale nan Panel Admin 🛡️</button>
+            <button class="btn-main" onclick="aleNanAkey()" style="background: transparent; border: 1px solid #3a506b; color: #cbd5e1; margin-top: 10px;">Retounen nan Akèy ⬅️</button>
+        </div>
+    </div>
+
+    <!-- 3. ADMIN LOGIN SCREEN -->
+    <div id="admin-auth-screen" class="screen">
+        <div class="auth-container">
+            <div class="logo" style="text-align:center; margin-bottom: 15px;">DLS<span>CASH</span> 🛡️ ADMIN</div>
+            <div class="auth-title">Aksè Panel Admin</div>
+            <div class="form-group">
+                <label>Modpas Admin</label>
+                <div class="password-wrapper">
+                    <input type="password" id="admin-pass-input" placeholder="Antre modpas admin...">
+                    <button type="button" class="toggle-password" onclick="togglePassVisibility('admin-pass-input', this)">👁️</button>
+                </div>
+            </div>
+            <button class="btn-main" onclick="verifyeAdmin()">Antre kòm Admin 🛡️</button>
+            <button class="btn-main" onclick="aleNanAkey()" style="background: transparent; border: 1px solid #3a506b; color: #cbd5e1; margin-top: 10px;">Retounen nan Akèy ⬅️</button>
+            <p id="admin-login-error" style="font-size: 11px; color: #ff0055; text-align: center; margin-top: 8px; font-weight: bold;"></p>
+        </div>
+    </div>
+
+    <!-- 4. ADMIN PANEL DASHBOARD -->
+    <div id="admin-main-screen" class="screen">
+        <div class="header">
+            <div class="logo">DLS<span>CASH</span> 🛡️ PANEL ADMIN</div>
+            <div>
+                <span style="color: #ffb703; font-weight: bold; margin-right: 10px;">🛡️ Administratè</span>
+                <button onclick="fèDekonneksyonAdmin()" style="background: #ff0055; border:none; color:white; padding:4px 8px; border-radius:4px; font-size:10px; cursor:pointer;">Sòti</button>
+            </div>
+        </div>
+
+        <!-- Seksyon Kontwòl Retrè & Tès Notifikasyon Imèl -->
+        <div class="box-section" style="border-color: #00b4d8; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+            <div>
+                <h3 style="color: #00b4d8; font-size: 15px;">⚙️ Estati Retrè nan Aplikasyon an</h3>
+                <p id="withdraw-status-text" style="font-size: 12px; color: #cbd5e1; margin-top: 3px;">Chaje estati retrè a...</p>
+            </div>
+            <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+                <button id="btn-toggle-withdraw" onclick="chanjeEstatiRetrè()" class="btn-action" style="padding: 10px 15px; font-size: 13px; font-weight: bold; cursor: pointer;">Tann...</button>
+                <button onclick="testeNotifikasyonImel()" class="btn-action" style="background: #00b4d8; color: #000; padding: 10px 15px; font-size: 13px; font-weight: bold; cursor: pointer;">✉️ Tès Imèl Admin</button>
+            </div>
+        </div>
+
+        <!-- Kat Estatistik yo -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4>Total Itilizatè nan Sistèm nan</h4>
+                <p id="stat-total-users">0</p>
+            </div>
+            <div class="stat-card" style="display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+                <h4>Total Depo nan Sistèm nan</h4>
+                <p id="stat-total-depo">0.00 $</p>
+                <button onclick="fèResetTotalDepo()" class="btn-action btn-delete" style="margin-top: 5px; padding: 5px 10px; font-size: 11px; width: 100%;">🔄 Reset Total Depo</button>
+            </div>
+            <div class="stat-card" style="display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
+                <h4>Total Retrè nan Sistèm nan</h4>
+                <p id="stat-total-retrai">0.00 $</p>
+                <button onclick="fèResetTotalRetrai()" class="btn-action btn-delete" style="margin-top: 5px; padding: 5px 10px; font-size: 11px; width: 100%;">🔄 Reset Total Retrè</button>
+            </div>
+        </div>
+
+        <!-- TABLO LIS TOUT ITILIZATÈ YO -->
+        <div class="box-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                <h3 style="color: #ffb703; font-size: 16px;">👥 Lis Tout Itilizatè yo</h3>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="🔍 Chèche pa imèl..." style="padding: 6px 10px; background: #0b132b; border: 1px solid #3a506b; border-radius: 4px; color: white; font-size: 12px;">
+                    <button onclick="chajeDoneSistèm()" class="btn-copy">Rafrechi 🔄</button>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Non</th>
+                            <th>Imèl</th>
+                            <th>Sol Depo</th>
+                            <th>Sol Retrè</th>
+                            <th>Estati</th>
+                            <th>VIP</th>
+                            <th>Aksyon</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <tr><td colspan="7" style="text-align: center;">Chaje itilizatè yo...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- KONTWÒL TRANZAKSYON (DEPO & RETRÈ) -->
+        <div class="box-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h3 style="color: #ffb703; font-size: 16px;">📋 Kontwòl Tranzaksyon (Depo & Retrè)</h3>
+                <button onclick="chajeTranzaksyonAdmin()" class="btn-copy">Rafrechi 🔄</button>
+            </div>
+            <p style="font-size: 12px; color: #cbd5e1; margin-bottom: 15px;">La a ou ka wè tout demann depo (ak foto prèv) ak demann retrè itilizatè yo voye.</p>
+            
+            <div style="overflow-x: auto;">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Dat</th>
+                            <th>Itilizatè</th>
+                            <th>Tip</th>
+                            <th>Detay / Montan</th>
+                            <th>Prèv / Adrès</th>
+                            <th>Aksyon</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-transactions-list">
+                        <tr><td colspan="6" style="text-align: center;">Chaje tranzaksyon yo...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT POU NAVIGASYON AK ADMIN -->
+    <script>
+        const ADMIN_SECRET_PASS = "admin1234";
+        let aktyelEstatiRetra = true;
+
+        function aleNanAkey() {
+            fekteChanjmanEkran('home-screen');
+        }
+
+        function aleNanLoginKliyan() {
+            fekteChanjmanEkran('client-auth-screen');
+        }
+
+        function aleNanLoginAdmin() {
+            fekteChanjmanEkran('admin-auth-screen');
+        }
+
+        function fekteChanjmanEkran(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        function togglePassVisibility(inputId, btn) {
+            let input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                btn.textContent = "🙈";
+            } else {
+                input.type = "password";
+                btn.textContent = "👁️";
+            }
+        }
+
+        function verifyeAdmin() {
+            let p = document.getElementById('admin-pass-input').value.trim();
+            let err = document.getElementById('admin-login-error');
+            if (p === ADMIN_SECRET_PASS) {
+                fekteChanjmanEkran('admin-main-screen');
+                chajeDoneSistèm();
+                chajeTranzaksyonAdmin();
+                tchekeEstatiRetra();
+            } else {
+                err.textContent = "❌ Modpas admin lan pa kòrèk!";
+            }
+        }
+
+        function fèDekonneksyonAdmin() {
+            aleNanLoginAdmin();
+            document.getElementById('admin-pass-input').value = "";
+            document.getElementById('admin-login-error').textContent = "";
+        }
+
+        function filterTable() {
+            let input = document.getElementById("searchInput");
+            let filter = input.value.toLowerCase();
+            let tbody = document.getElementById("users-table-body");
+            let rows = tbody.getElementsByTagName("tr");
+
+            for (let i = 0; i < rows.length; i++) {
+                let emailTd = rows[i].getElementsByTagName("td")[1];
+                if (emailTd) {
+                    let emailValue = emailTd.textContent || emailTd.innerText;
+                    if (emailValue.toLowerCase().indexOf(filter) > -1) {
+                        rows[i].style.display = "";
+                    } else {
+                        rows[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        async function adjustBalance(uid, currentDepo, currentRetrai) {
+            let nouvoDepo = prompt("Antre nouvo sol DEPO pou itilizatè sa a:", currentDepo);
+            if (nouvoDepo === null) return;
+            
+            let nouvoRetrai = prompt("Antre nouvo sol RETRÈ pou itilizatè sa a:", currentRetrai);
+            if (nouvoRetrai === null) return;
+
+            let parsedDepo = Number(nouvoDepo);
+            let parsedRetrai = Number(nouvoRetrai);
+
+            if (isNaN(parsedDepo) || isNaN(parsedRetrai)) {
+                alert("❌ Tanpri antre chif ki valab!");
+                return;
+            }
+
+            try {
+                let userRef = window.fbDoc(window.firebaseDb, "users", uid);
+                await window.fbUpdateDoc(userRef, { 
+                    soldDepo: parsedDepo, 
+                    depo: parsedDepo,
+                    soldRetrai: parsedRetrai,
+                    retrai: parsedRetrai
+                });
+                alert("✅ Solde yo mete ajou ak siksè!");
+                chajeDoneSistèm();
+            } catch (e) {
+                alert("❌ Erè lè w t ap ajiste sold yo: " + e.message);
+            }
+        }
+
+        async function tchekeEstatiRetra() {
+            try {
+                let confRef = window.fbDoc(window.firebaseDb, "settings", "withdrawConfig");
+                let snap = await window.fbGetDoc(confRef);
+                let statusText = document.getElementById('withdraw-status-text');
+                let toggleBtn = document.getElementById('btn-toggle-withdraw');
+
+                if (snap.exists()) {
+                    let data = snap.data();
+                    aktyelEstatiRetra = data.isOpen !== undefined ? data.isOpen : true;
+                } else {
+                    await window.fbSetDoc(confRef, { isOpen: true });
+                    aktyelEstatiRetra = true;
+                }
+
+                if (aktyelEstatiRetra) {
+                    statusText.innerHTML = "Sistèm Retrè a 🟢 <b style='color:#00ff88;'>LOUVRI</b> pou tout itilizatè.";
+                    toggleBtn.textContent = "🔒 Fèmen Retrè yo";
+                    toggleBtn.style.background = "#ff0055";
+                    toggleBtn.style.color = "#fff";
+                } else {
+                    statusText.innerHTML = "Sistèm Retrè a 🔴 <b style='color:#ff0055;'>FÈMEN</b> pou tout itilizatè.";
+                    toggleBtn.textContent = "🔓 Louvri Retrè yo";
+                    toggleBtn.style.background = "#00ff88";
+                    toggleBtn.style.color = "#000";
+                }
+            } catch (e) {
+                console.error("Erè nan tcheke estati retrè:", e);
+            }
+        }
+
+        async function chanjeEstatiRetrè() {
+            let nouvoValè = !aktyelEstatiRetra;
+            let mesajKonfimasyon = nouvoValè ? "Èske w sèten ou vle LOUVRI retrè yo pou tout itilizatè?" : "Èske w sèten ou vle FÈMEN retrè yo? Itilizatè yo pap ka fè demann retrè ankò.";
+            
+            if (confirm(mesajKonfimasyon)) {
+                try {
+                    let confRef = window.fbDoc(window.firebaseDb, "settings", "withdrawConfig");
+                    await window.fbSetDoc(confRef, { isOpen: nouvoValè }, { merge: true });
+                    tchekeEstatiRetra();
+                    alert(nouvoValè ? "🟢 Retrè yo louvri avèk siksè!" : "🔴 Retrè yo fèmen avèk siksè!");
+                } catch (e) {
+                    alert("❌ Erè pandan chanjman an: " + e.message);
+                }
+            }
+        }
+
+        async function testeNotifikasyonImel() {
+            try {
+                let templateParams = {
+                    admin_email: "fontalfontal61@gmail.com",
+                    transaction_type: "TÈS",
+                    user_name: "Administratè",
+                    amount: "0.00",
+                    date: new Date().toLocaleString()
+                };
+
+                await emailjs.send('service_dsqs62t', 'template_pwf6yk9', templateParams);
+                alert("✉️ Imèl tès la voye sou fontalfontal61@gmail.com avèk siksè!");
+            } catch (e) {
+                alert("❌ Erè pandan voye tès imèl la: " + e.message);
+            }
+        }
+
+        async function chajeDoneSistèm() {
+            let tbody = document.getElementById('users-table-body');
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">Chaje itilizatè yo...</td></tr>`;
+
+            try {
+                let colRef = window.fbCollection(window.firebaseDb, "users");
+                let snap = await window.fbGetDocs(colRef);
+
+                tbody.innerHTML = "";
+                let totalUsers = 0;
+                let sumDepo = 0;
+                let sumRetrai = 0;
+                let hasUsers = false;
+
+                snap.forEach(docSnap => {
+                    hasUsers = true;
+                    totalUsers++;
+                    let uid = docSnap.id;
+                    let data = docSnap.data();
+
+                    let soldDepoVal = Number(data.soldDepo || data.depo || 0);
+                    let soldRetraiVal = Number(data.soldRetrai || data.retrai || 0);
+
+                    sumDepo += soldDepoVal;
+                    sumRetrai += soldRetraiVal;
+
+                    let isBlocked = data.status === 'blocked';
+                    let statusHtml = isBlocked ? `<span style="color: #ff0055; font-weight: bold;">Bloke 🔒</span>` : `<span style="color: #00ff88; font-weight: bold;">Aktif ✅</span>`;
+                    
+                    let blockBtnClass = isBlocked ? "btn-unblock" : "btn-block";
+                    let blockBtnText = isBlocked ? "🔓 Debloke" : "🔒 Bloke";
+                    let targetStatus = isBlocked ? "active" : "blocked";
+
+                    tbody.innerHTML += `
+                        <tr>
+                            <td><b>${data.name || data.non || 'San Non'}</b></td>
+                            <td>${data.email || ''}</td>
+                            <td style="color: #ffb703; font-weight: bold;">${soldDepoVal.toFixed(2)} $</td>
+                            <td style="color: #00b4d8; font-weight: bold;">${soldRetraiVal.toFixed(2)} $</td>
+                            <td>${statusHtml}</td>
+                            <td style="color: #00ff88; font-weight: bold;">VIP ${data.currentVip !== undefined ? data.currentVip : (data.vip || 0)}</td>
+                            <td>
+                                <button class="btn-action ${blockBtnClass}" onclick="chanjeEstatItilizate('${uid}', '${targetStatus}')">${blockBtnText}</button>
+                                <button class="btn-action btn-adjust" onclick="adjustBalance('${uid}', ${soldDepoVal}, ${soldRetraiVal})">✏️ Ajiste</button>
+                                <button class="btn-action btn-delete" onclick="siprimeItilizate('${uid}', '${data.name || data.non || 'itilizatè sa a'}')">🗑 Siprime</button>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                if (!hasUsers) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #8a99ad;">Pa gen okenn itilizatè nan baz done a...</td></tr>`;
+                }
+
+                document.getElementById('stat-total-users').textContent = totalUsers;
+                document.getElementById('stat-total-depo').textContent = sumDepo.toFixed(2) + " $";
+                document.getElementById('stat-total-retrai').textContent = sumRetrai.toFixed(2) + " $";
+
+                filterTable();
+
+            } catch (e) {
+                console.error("Erè nan chaje done yo:", e);
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ff0055;">Erè: ${e.message}</td></tr>`;
+            }
+        }
+
+        async function chanjeEstatItilizate(uid, nouvèlEstati) {
+            try {
+                let userRef = window.fbDoc(window.firebaseDb, "users", uid);
+                await window.fbUpdateDoc(userRef, { status: nouvèlEstati });
+                alert(nouvèlEstati === 'blocked' ? "🔒 Itilizatè a bloke avèk siksè!" : "🔓 Itilizatè a debloke avèk siksè!");
+                chajeDoneSistèm();
+            } catch (e) {
+                alert("❌ Erè: " + e.message);
+            }
+        }
+
+        async function siprimeItilizate(uid, nonManm) {
+            if (confirm(`⚠️ Èske w sèten ou vle efase kont "${nonManm}" sa a nèt nan baz done a?`)) {
+                try {
+                    let userRef = window.fbDoc(window.firebaseDb, "users", uid);
+                    await window.fbDeleteDoc(userRef);
+                    alert("🗑 Itilizatè a siprime avèk siksè!");
+                    chajeDoneSistèm();
+                } catch (e) {
+                    alert("❌ Erè: " + e.message);
+                }
+            }
+        }
+
+        async function fèResetTotalDepo() {
+            if (confirm("⚠️ ATANSYON: Èske w sèten ou vle reset tout sol depo itilizatè yo nan sistèm nan mete yo a 0?")) {
+                try {
+                    let colRef = window.fbCollection(window.firebaseDb, "users");
+                    let snap = await window.fbGetDocs(colRef);
+                    
+                    let updatePromises = [];
+                    snap.forEach(docSnap => {
+                        let userRef = window.fbDoc(window.firebaseDb, "users", docSnap.id);
+                        updatePromises.push(window.fbUpdateDoc(userRef, { soldDepo: 0, depo: 0 }));
+                    });
+                    
+                    await Promise.all(updatePromises);
+                    chajeDoneSistèm();
+                    alert("🔄 Total depo tout itilizatè yo reset a 0 avèk siksè!");
+                } catch (e) {
+                    alert("❌ Erè pandan reset depo a: " + e.message);
+                }
+            }
+        }
+
+        async function fèResetTotalRetrai() {
+            if (confirm("⚠️ ATANSYON: Èske w sèten ou vle reset tout sol retrè itilizatè yo nan sistèm nan mete yo a 0?")) {
+                try {
+                    let colRef = window.fbCollection(window.firebaseDb, "users");
+                    let snap = await window.fbGetDocs(colRef);
+                    
+                    let updatePromises = [];
+                    snap.forEach(docSnap => {
+                        let userRef = window.fbDoc(window.firebaseDb, "users", docSnap.id);
+                        updatePromises.push(window.fbUpdateDoc(userRef, { soldRetrai: 0, retrai: 0 }));
+                    });
+                    
+                    await Promise.all(updatePromises);
+                    chajeDoneSistèm();
+                    alert("🔄 Total retrè tout itilizatè yo reset a 0 avèk siksè!");
+                } catch (e) {
+                    alert("❌ Erè pandan reset retrè yo: " + e.message);
+                }
+            }
+        }
+
+        async function chajeTranzaksyonAdmin() {
+            let tbody = document.getElementById('admin-transactions-list');
+            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Chaje tranzaksyon yo...</td></tr>`;
+
+            try {
+                let colRef = window.fbCollection(window.firebaseDb, "transactions");
+                let snap = await window.fbGetDocs(colRef);
+                tbody.innerHTML = "";
+
+                if (snap.empty) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Pa gen okenn tranzaksyon nan sistèm nan.</td></tr>`;
+                    return;
+                }
+
+                let genAnnatant = false;
+
+                snap.forEach(docSnap => {
+                    let t = docSnap.data();
+                    if (!t.status || t.status === "annatant") {
+                        genAnnatant = true;
+                        let prèvOtrHtml = "";
+                        
+                        if (t.adresOtr && (t.adresOtr.startsWith("data:image") || t.adresOtr.startsWith("http"))) {
+                            prèvOtrHtml = `<a href="${t.adresOtr}" target="_blank" style="color: #00ff88; font-weight: bold; text-decoration: underline;">🖼️ Wè Foto Prèv a</a>`;
+                        } else {
+                            prèvOtrHtml = t.adresOtr || "Pa gen enfòmasyon";
+                        }
+
+                        let row = `
+                            <tr>
+                                <td>${t.date || 'Jodi a'}</td>
+                                <td><b>${t.userName || 'Itilizatè'}</b></td>
+                                <td><span style="color: ${t.type === 'depo' ? '#ffb703' : '#00b4d8'}; font-weight: bold; text-transform: uppercase;">${t.type || 'depo'}</span></td>
+                                <td><b>${t.montan || 0} $</b> (${t.metod || 'an jeneral'})</td>
+                                <td>${prèvOtrHtml}</td>
+                                <td>
+                                    <button class="btn-approve" onclick="apwouveTranzaksyon('${docSnap.id}', '${t.uid}', '${t.type}', ${t.montan || 0}, '${t.userName || "Itilizatè"}')">Apwouve ✅</button><br>
+                                    <button class="btn-reject" onclick="rejteTranzaksyon('${docSnap.id}', '${t.uid}', '${t.type}', ${t.montan || 0}, '${t.userName || "Itilizatè"}')">Rejte ❌</button>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.innerHTML += row;
+                    }
+                });
+
+                if (!genAnnatant) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Pa gen okenn tranzaksyon annatant kounye a.</td></tr>`;
+                }
+            } catch (e) {
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #ff0055;">Erè lè w t ap chaje tranzaksyon yo: ${e.message}</td></tr>`;
+            }
+        }
+
+        async function apwouveTranzaksyon(transId, uid, tip, montan, nonItilizatè) {
+            if (confirm("Èske w sèten ou vle apwouve tranzaksyon sa a?")) {
+                try {
+                    let userRef = window.fbDoc(window.firebaseDb, "users", uid);
+                    let userSnap = await window.fbGetDoc(userRef);
+
+                    if (tip === "depo") {
+                        if (userSnap.exists()) {
+                            let uData = userSnap.data();
+                            let nouvoSoldDepo = Number(uData.soldDepo || uData.depo || 0) + Number(montan);
+                            await window.fbUpdateDoc(userRef, { soldDepo: nouvoSoldDepo, depo: nouvoSoldDepo });
+                        }
+                    } else if (tip === "retrai" || tip === "retiray") {
+                        if (userSnap.exists()) {
+                            let uData = userSnap.data();
+                            let aktyelRetrai = Number(uData.soldRetrai || uData.retrai || 0);
+                            let nouvoSoldRetrai = aktyelRetrai + Number(montan);
+                            await window.fbUpdateDoc(userRef, { soldRetrai: nouvoSoldRetrai, retrai: nouvoSoldRetrai });
+                        }
+                    }
+
+                    let transRef = window.fbDoc(window.firebaseDb, "transactions", transId);
+                    await window.fbUpdateDoc(transRef, { status: "apwouve" });
+
+                    if (userSnap.exists()) {
+                        let uData = userSnap.data();
+                        if (uData.email) {
+                            let templateParams = {
+                                email: uData.email,
+                                user_name: nonItilizatè,
+                                transaction_type: tip.toUpperCase(),
+                                amount: montan,
+                                statut: "APWOUVE ✅",
+                                date: new Date().toLocaleString()
+                            };
+
+                            await emailjs.send('service_dsqs62t', 'template_gewpf5q', templateParams);
+                        }
+                    }
+
+                    alert("✅ Tranzaksyon an apwouve epi kliyan an notifye!");
+                    chajeDoneSistèm();
+                    chajeTranzaksyonAdmin();
+                } catch (e) {
+                    alert("❌ Erè: " + e.message);
+                }
+            }
+        }
+
+        async function rejteTranzaksyon(transId, uid, tip, montan, nonItilizatè) {
+            if (confirm("Èske w vle rejte tranzaksyon sa a?")) {
+                try {
+                    let transRef = window.fbDoc(window.firebaseDb, "transactions", transId);
+                    await window.fbUpdateDoc(transRef, { status: "rejte" });
+
+                    let userRef = window.fbDoc(window.firebaseDb, "users", uid);
+                    let userSnap = await window.fbGetDoc(userRef);
+                    if (userSnap.exists()) {
+                        let uData = userSnap.data();
+                        if (uData.email) {
+                            let templateParams = {
+                                email: uData.email,
+                                user_name: nonItilizatè,
+                                transaction_type: tip.toUpperCase(),
+                                amount: montan,
+                                statut: "REJTE ❌",
+                                date: new Date().toLocaleString()
+                            };
+
+                            await emailjs.send('service_dsqs62t', 'template_gewpf5q', templateParams);
+                        }
+                    }
+
+                    alert("❌ Tranzaksyon an rejte epi kliyan an notifye.");
+                    chajeTranzaksyonAdmin();
+                } catch (e) {
+                    alert("❌ Erè: " + e.message);
+                }
+            }
+        }
+    </script>
+</body>
+</html>
