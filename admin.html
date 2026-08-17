@@ -77,6 +77,7 @@
         .btn-unblock { background: #00ff88; color: #000; }
         .btn-approve { background: #00ff88; color: #000; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; }
         .btn-reject { background: #ff0055; color: #fff; border: none; padding: 5px 10px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; margin-top: 4px; }
+        .btn-adjust { background: #00b4d8; color: #000; }
 
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; margin-bottom: 20px; }
         .stat-card { background: #1c2541; padding: 15px; border-radius: 10px; border: 1px solid #3a506b; text-align: center; }
@@ -160,31 +161,36 @@
                 <button onclick="fèResetTotalDepo()" class="btn-action btn-delete" style="margin-top: 5px; padding: 5px 10px; font-size: 11px; width: 100%;">🔄 Reset Total Depo</button>
             </div>
             <div class="stat-card" style="display: flex; flex-direction: column; justify-content: space-between; align-items: center;">
-                <h4>Total Benefis 5%</h4>
-                <p id="stat-total-benefis">0.00 $</p>
-                <button onclick="fèResetBenefis5Porse()" class="btn-action btn-delete" style="margin-top: 5px; padding: 5px 10px; font-size: 11px; width: 100%;">🔄 Reset Benefis 5%</button>
+                <h4>Total Retrè nan Sistèm nan</h4>
+                <p id="stat-total-retrai">0.00 $</p>
+                <button onclick="fèResetTotalRetrai()" class="btn-action btn-delete" style="margin-top: 5px; padding: 5px 10px; font-size: 11px; width: 100%;">🔄 Reset Total Retrè</button>
             </div>
         </div>
 
         <!-- TABLO LIS TOUT ITILIZATÈ YO -->
         <div class="box-section">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
                 <h3 style="color: #ffb703; font-size: 16px;">👥 Lis Tout Itilizatè yo</h3>
-                <button onclick="chajeDoneSistèm()" class="btn-copy">Rafrechi 🔄</button>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="text" id="searchInput" onkeyup="filterTable()" placeholder="🔍 Chèche pa imèl..." style="padding: 6px 10px; background: #0b132b; border: 1px solid #3a506b; border-radius: 4px; color: white; font-size: 12px;">
+                    <button onclick="chajeDoneSistèm()" class="btn-copy">Rafrechi 🔄</button>
+                </div>
             </div>
             <div style="overflow-x: auto;">
                 <table class="admin-table">
                     <thead>
-                    <tr>
-                    <th>Non</th>
-                    <th>Imèl</th>
-                    <th>Sol Depo</th>
-                    <th>Estati</th>
-                   
-                   <th>Aksyon (Bloke / Siprime)</th>
-     
+                        <tr>
+                            <th>Non</th>
+                            <th>Imèl</th>
+                            <th>Sol Depo</th>
+                            <th>Sol Retrè</th>
+                            <th>Estati</th>
+                            <th>VIP</th>
+                            <th>Aksyon</th>
+                        </tr>
+                    </thead>
                     <tbody id="users-table-body">
-                        <tr><td colspan="6" style="text-align: center;">Chaje itilizatè yo...</td></tr>
+                        <tr><td colspan="7" style="text-align: center;">Chaje itilizatè yo...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -270,6 +276,55 @@
             document.getElementById('admin-login-error').textContent = "";
         }
 
+        function filterTable() {
+            let input = document.getElementById("searchInput");
+            let filter = input.value.toLowerCase();
+            let tbody = document.getElementById("users-table-body");
+            let rows = tbody.getElementsByTagName("tr");
+
+            for (let i = 0; i < rows.length; i++) {
+                let emailTd = rows[i].getElementsByTagName("td")[1];
+                if (emailTd) {
+                    let emailValue = emailTd.textContent || emailTd.innerText;
+                    if (emailValue.toLowerCase().indexOf(filter) > -1) {
+                        rows[i].style.display = "";
+                    } else {
+                        rows[i].style.display = "none";
+                    }
+                }
+            }
+        }
+
+        async function adjustBalance(uid, currentDepo, currentRetrai) {
+            let nouvoDepo = prompt("Antre nouvo sol DEPO pou itilizatè sa a:", currentDepo);
+            if (nouvoDepo === null) return;
+            
+            let nouvoRetrai = prompt("Antre nouvo sol RETRÈ pou itilizatè sa a:", currentRetrai);
+            if (nouvoRetrai === null) return;
+
+            let parsedDepo = Number(nouvoDepo);
+            let parsedRetrai = Number(nouvoRetrai);
+
+            if (isNaN(parsedDepo) || isNaN(parsedRetrai)) {
+                alert("❌ Tanpri antre chif ki valab!");
+                return;
+            }
+
+            try {
+                let userRef = window.fbDoc(window.firebaseDb, "users", uid);
+                await window.fbUpdateDoc(userRef, { 
+                    soldDepo: parsedDepo, 
+                    depo: parsedDepo,
+                    soldRetrai: parsedRetrai,
+                    retrai: parsedRetrai
+                });
+                alert("✅ Solde yo mete ajou ak siksè!");
+                chajeDoneSistèm();
+            } catch (e) {
+                alert("❌ Erè lè w t ap ajiste sold yo: " + e.message);
+            }
+        }
+
         async function tchekeEstatiRetra() {
             try {
                 let confRef = window.fbDoc(window.firebaseDb, "settings", "withdrawConfig");
@@ -336,7 +391,7 @@
 
         async function chajeDoneSistèm() {
             let tbody = document.getElementById('users-table-body');
-            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center;">Chaje itilizatè yo...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">Chaje itilizatè yo...</td></tr>`;
 
             try {
                 let colRef = window.fbCollection(window.firebaseDb, "users");
@@ -345,7 +400,7 @@
                 tbody.innerHTML = "";
                 let totalUsers = 0;
                 let sumDepo = 0;
-                let sumBenefis = 0;
+                let sumRetrai = 0;
                 let hasUsers = false;
 
                 snap.forEach(docSnap => {
@@ -355,10 +410,10 @@
                     let data = docSnap.data();
 
                     let soldDepoVal = Number(data.soldDepo || data.depo || 0);
-                    let soldBenefisVal = Number(data.benefis5 || data.benefis || data.soldBenefis || 0);
+                    let soldRetraiVal = Number(data.soldRetrai || data.retrai || 0);
 
                     sumDepo += soldDepoVal;
-                    sumBenefis += soldBenefisVal;
+                    sumRetrai += soldRetraiVal;
 
                     let isBlocked = data.status === 'blocked';
                     let statusHtml = isBlocked ? `<span style="color: #ff0055; font-weight: bold;">Bloke 🔒</span>` : `<span style="color: #00ff88; font-weight: bold;">Aktif ✅</span>`;
@@ -372,10 +427,12 @@
                             <td><b>${data.name || data.non || 'San Non'}</b></td>
                             <td>${data.email || ''}</td>
                             <td style="color: #ffb703; font-weight: bold;">${soldDepoVal.toFixed(2)} $</td>
+                            <td style="color: #00b4d8; font-weight: bold;">${soldRetraiVal.toFixed(2)} $</td>
                             <td>${statusHtml}</td>
-                            <td style="color: #00b4d8; font-weight: bold;">VIP ${data.currentVip !== undefined ? data.currentVip : (data.vip || 0)}</td>
+                            <td style="color: #00ff88; font-weight: bold;">VIP ${data.currentVip !== undefined ? data.currentVip : (data.vip || 0)}</td>
                             <td>
                                 <button class="btn-action ${blockBtnClass}" onclick="chanjeEstatItilizate('${uid}', '${targetStatus}')">${blockBtnText}</button>
+                                <button class="btn-action btn-adjust" onclick="adjustBalance('${uid}', ${soldDepoVal}, ${soldRetraiVal})">✏️ Ajiste</button>
                                 <button class="btn-action btn-delete" onclick="siprimeItilizate('${uid}', '${data.name || data.non || 'itilizatè sa a'}')">🗑 Siprime</button>
                             </td>
                         </tr>
@@ -383,16 +440,18 @@
                 });
 
                 if (!hasUsers) {
-                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #8a99ad;">Pa gen okenn itilizatè nan baz done a...</td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #8a99ad;">Pa gen okenn itilizatè nan baz done a...</td></tr>`;
                 }
 
                 document.getElementById('stat-total-users').textContent = totalUsers;
                 document.getElementById('stat-total-depo').textContent = sumDepo.toFixed(2) + " $";
-                document.getElementById('stat-total-benefis').textContent = sumBenefis.toFixed(2) + " $";
+                document.getElementById('stat-total-retrai').textContent = sumRetrai.toFixed(2) + " $";
+
+                filterTable();
 
             } catch (e) {
                 console.error("Erè nan chaje done yo:", e);
-                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: #ff0055;">Erè: ${e.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: #ff0055;">Erè: ${e.message}</td></tr>`;
             }
         }
 
@@ -441,8 +500,8 @@
             }
         }
 
-        async function fèResetBenefis5Porse() {
-            if (confirm("⚠️ ATANSYON: Èske w sèten ou vle reset tout benefis 5% itilizatè yo nan sistèm nan mete yo a 0?")) {
+        async function fèResetTotalRetrai() {
+            if (confirm("⚠️ ATANSYON: Èske w sèten ou vle reset tout sol retrè itilizatè yo nan sistèm nan mete yo a 0?")) {
                 try {
                     let colRef = window.fbCollection(window.firebaseDb, "users");
                     let snap = await window.fbGetDocs(colRef);
@@ -450,14 +509,14 @@
                     let updatePromises = [];
                     snap.forEach(docSnap => {
                         let userRef = window.fbDoc(window.firebaseDb, "users", docSnap.id);
-                        updatePromises.push(window.fbUpdateDoc(userRef, { benefis5: 0, benefis: 0, soldBenefis: 0 }));
+                        updatePromises.push(window.fbUpdateDoc(userRef, { soldRetrai: 0, retrai: 0 }));
                     });
                     
                     await Promise.all(updatePromises);
                     chajeDoneSistèm();
-                    alert("🔄 Total benefis 5% yo reset a 0 avèk siksè!");
+                    alert("🔄 Total retrè tout itilizatè yo reset a 0 avèk siksè!");
                 } catch (e) {
-                    alert("❌ Erè pandan reset benefis yo: " + e.message);
+                    alert("❌ Erè pandan reset retrè yo: " + e.message);
                 }
             }
         }
@@ -518,21 +577,27 @@
         async function apwouveTranzaksyon(transId, uid, tip, montan, nonItilizatè) {
             if (confirm("Èske w sèten ou vle apwouve tranzaksyon sa a?")) {
                 try {
+                    let userRef = window.fbDoc(window.firebaseDb, "users", uid);
+                    let userSnap = await window.fbGetDoc(userRef);
+
                     if (tip === "depo") {
-                        let userRef = window.fbDoc(window.firebaseDb, "users", uid);
-                        let userSnap = await window.fbGetDoc(userRef);
                         if (userSnap.exists()) {
                             let uData = userSnap.data();
-                            let nouvoSoldDepo = Number(uData.soldDepo || 0) + Number(montan);
-                            await window.fbUpdateDoc(userRef, { soldDepo: nouvoSoldDepo });
+                            let nouvoSoldDepo = Number(uData.soldDepo || uData.depo || 0) + Number(montan);
+                            await window.fbUpdateDoc(userRef, { soldDepo: nouvoSoldDepo, depo: nouvoSoldDepo });
+                        }
+                    } else if (tip === "retrai" || tip === "retiray") {
+                        if (userSnap.exists()) {
+                            let uData = userSnap.data();
+                            let aktyelRetrai = Number(uData.soldRetrai || uData.retrai || 0);
+                            let nouvoSoldRetrai = aktyelRetrai + Number(montan);
+                            await window.fbUpdateDoc(userRef, { soldRetrai: nouvoSoldRetrai, retrai: nouvoSoldRetrai });
                         }
                     }
 
                     let transRef = window.fbDoc(window.firebaseDb, "transactions", transId);
                     await window.fbUpdateDoc(transRef, { status: "apwouve" });
 
-                    let userRef = window.fbDoc(window.firebaseDb, "users", uid);
-                    let userSnap = await window.fbGetDoc(userRef);
                     if (userSnap.exists()) {
                         let uData = userSnap.data();
                         if (uData.email) {
@@ -549,7 +614,7 @@
                         }
                     }
 
-                    alert("✅ Tranzaksyon an apwouve epi kliyan an resevwa yon notifikasyon pa imèl!");
+                    alert("✅ Tranzaksyon an apwouve epi kliyan an notifye!");
                     chajeDoneSistèm();
                     chajeTranzaksyonAdmin();
                 } catch (e) {
